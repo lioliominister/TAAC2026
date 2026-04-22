@@ -1,0 +1,41 @@
+# Unified Block v1 Configuration
+# Single Unified Block with Cross-Attention between seq and non-seq streams
+
+data:
+  parquet_path: data/raw/demo_1000.parquet
+  max_seq_len: 100
+  max_array_len: 20
+  val_ratio: 0.1
+  batch_size: 1024
+  num_workers: 4
+
+model:
+  hidden_dim: 128
+  num_unified_blocks: 1          # ⭐ 1 Unified Block
+  seq_encoder_type: transformer
+  seq_num_heads: 4
+  seq_num_layers: 1
+  nonseq_encoder_type: dcnv2     # DCNv2 for explicit feature interaction
+  cross_attn_heads: 4
+  pooling_type: mean
+  dropout: 0.1
+
+train:
+  optimizer: adamw
+  learning_rate: 1.0e-3
+  weight_decay: 1.0e-5
+  max_epochs: 10
+  warmup_steps: 500
+  gradient_clip: 1.0
+  mixed_precision: true
+  seed: 42
+
+eval:
+  metrics: [auc_roc, log_loss]
+  eval_every_n_steps: 500
+  save_top_k: 3
+
+logging:
+  backend: wandb
+  project: taac2026
+  run_name: unified_block_v1

@@ -1,0 +1,41 @@
+# Unified Block v2 Configuration
+# Stacked Unified Blocks - Scaling Law Experiment
+
+data:
+  parquet_path: data/raw/demo_1000.parquet
+  max_seq_len: 200               # Longer sequence for more context
+  max_array_len: 20
+  val_ratio: 0.1
+  batch_size: 512                # Smaller batch due to larger model
+  num_workers: 4
+
+model:
+  hidden_dim: 256                # Larger hidden dim
+  num_unified_blocks: 4          # ⭐ 4 stacked Unified Blocks
+  seq_encoder_type: transformer
+  seq_num_heads: 8
+  seq_num_layers: 2
+  nonseq_encoder_type: dcnv2
+  cross_attn_heads: 8
+  pooling_type: target_aware     # Target-aware attention pooling (DIN-style)
+  dropout: 0.2
+
+train:
+  optimizer: adamw
+  learning_rate: 5.0e-4          # Lower LR for larger model
+  weight_decay: 1.0e-4
+  max_epochs: 15
+  warmup_steps: 1000
+  gradient_clip: 1.0
+  mixed_precision: true
+  seed: 42
+
+eval:
+  metrics: [auc_roc, log_loss]
+  eval_every_n_steps: 200
+  save_top_k: 3
+
+logging:
+  backend: wandb
+  project: taac2026
+  run_name: unified_block_v2_scale

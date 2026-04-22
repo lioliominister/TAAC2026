@@ -1,0 +1,2 @@
+# data directory placeholder - actual data files are gitignored
+# Place raw parquet files under data/raw/
