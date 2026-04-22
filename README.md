@@ -11,56 +11,37 @@
 ```
 TAAC2026/
 ├── data/                      # Data directory (gitignored)
-│   ├── raw/                   # Raw parquet files from competition
-│   ├── processed/             # Preprocessed feature tensors (.pt)
-│   └── splits/                # Train / val / test index splits
+│   └── raw/                   # Raw parquet files
 │
-├── src/                       # Core source code
+├── src/
 │   ├── data/
-│   │   ├── schema.py          # Column definitions & groupings
+│   │   ├── schema.py          # Column definitions & groupings (EDA verified)
 │   │   ├── dataset.py         # PyTorch Dataset class
 │   │   ├── tokenizer.py       # Sequential & Non-Seq tokenizers
 │   │   └── feature_eng.py     # Feature engineering utilities
 │   │
-│   ├── models/
-│   │   ├── unified_block.py   # ⭐ Core: Unified Stackable Block
-│   │   ├── seq_encoder.py     # Sequential encoder (Transformer)
-│   │   ├── nonseq_encoder.py  # Non-sequential encoder (DCNv2/MLP)
-│   │   ├── cvr_head.py        # CVR prediction head
-│   │   └── model.py           # Full model assembly
+│   ├── layers/
+│   │   └── unified_block.py   # ⭐ Core: Unified Stackable Block
 │   │
-│   ├── training/
-│   │   ├── trainer.py         # Training loop
-│   │   ├── loss.py            # Loss functions (BCE, Focal)
-│   │   └── scheduler.py       # LR scheduler
-│   │
-│   ├── evaluation/
-│   │   ├── metrics.py         # AUC-ROC computation
-│   │   └── evaluator.py       # Validation evaluator
-│   │
-│   └── utils/
-│       ├── config.py          # Hyperparameter config (dataclass)
-│       ├── logger.py          # Training logger (W&B / TensorBoard)
-│       └── seed.py            # Random seed utilities
+│   └── models.py              # Full model assembly (Embedding + Blocks + Head)
 │
 ├── configs/                   # Experiment YAML configs
 │   ├── baseline.yaml
 │   ├── unified_block_v1.yaml
 │   └── unified_block_v2.yaml
 │
-├── experiments/               # Auto-archived experiment runs (gitignored)
-│
 ├── notebooks/
-│   ├── 01_EDA.ipynb
-│   ├── 02_feature_analysis.ipynb
-│   └── 03_model_debug.ipynb
+│   └── EDA_report.md          # EDA analysis report (from demo data)
 │
 ├── scripts/
+│   ├── eda.py                 # Data exploration script
 │   ├── preprocess.py          # Data preprocessing entry
-│   ├── train.py               # Training entry
+│   ├── train.py               # Training entry (thin wrapper)
 │   ├── evaluate.py            # Evaluation entry
 │   └── submit.py              # Generate submission file
 │
+├── main.py                    # ⭐ Unified entry point (train/evaluate/submit)
+├── inference_test.py          # Inference latency benchmark
 ├── requirements.txt
 └── README.md
 ```
@@ -71,18 +52,31 @@ TAAC2026/
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Preprocess data
-python scripts/preprocess.py --data_path data/raw/demo_1000.parquet
+# 2. Run EDA (generates notebooks/EDA_report.md)
+python scripts/eda.py
 
-# 3. Train baseline
-python scripts/train.py --config configs/baseline.yaml
+# 3. Train
+python main.py --config configs/baseline.yaml --mode train
 
 # 4. Evaluate
-python scripts/evaluate.py --config configs/baseline.yaml --ckpt experiments/latest/best.pt
+python main.py --config configs/baseline.yaml --mode evaluate --ckpt experiments/latest/best.pt
 
-# 5. Submit
-python scripts/submit.py --ckpt experiments/latest/best.pt
+# 5. Test inference latency
+python inference_test.py --ckpt experiments/latest/best.pt
+
+# 6. Submit
+python main.py --config configs/unified_block_v1.yaml --mode submit --ckpt experiments/latest/best.pt
 ```
+
+## Data Schema (EDA Verified)
+
+| Group | Cols | Key Findings |
+|-------|------|-------------|
+| ID & Label | 5 | label_type={1,2}, NOT 0/1 |
+| User Int | 46 | Mixed scalar/array, fid not continuous |
+| User Dense | 10 | dim=256(fid_61), dim=320(fid_87), others vary |
+| Item Int | 14 | Mostly scalar float64, one array(fid_11) |
+| Domain Seq | 45 | 4 domains, p95 length: 1215~2461 |
 
 ## Competition References
 
