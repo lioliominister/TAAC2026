@@ -41,7 +41,8 @@ LABEL_MAP = {1: 0, 2: 1}  # 1=negative, 2=positive(转化)
 
 ALL_USER_INT_FIDS = (
     [1, 3, 4, 15]
-    + list(range(48, 67))
+    + list(range(48, 61))    # 48-60 (fid 61 is dense only, NOT user_int)
+    + list(range(62, 67))    # 62-66
     + [80, 82, 86]
     + list(range(89, 110))
 )
@@ -53,7 +54,7 @@ USER_INT_COLS = [f"user_int_feats_{i}" for i in ALL_USER_INT_FIDS]
 # These should be re-verified on full dataset
 USER_INT_SCALAR_FIDS = (
     [1, 3, 4]
-    + list(range(48, 60))
+    + list(range(48, 60))     # 48-59 (fid 60 is array type)
     + [82, 86]
     + list(range(92, 110))
 )
